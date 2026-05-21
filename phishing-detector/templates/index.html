@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard — URL Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ── Header ── -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">⬡</span>
+            <span class="logo-text">Phish<strong>Guard</strong></span>
+        </div>
+        <p class="tagline">Machine Learning · URL Security Analysis</p>
+    </header>
+
+    <!-- ── Main Content ── -->
+    <main class="main">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">🔬 ML-Powered Detection</div>
+            <h1 class="hero-title">Is This URL Safe?</h1>
+            <p class="hero-sub">
+                Paste any URL below and our trained model will classify it
+                as <span class="tag-legit">Legitimate</span> or
+                <span class="tag-phish">Phishing</span> in seconds.
+            </p>
+        </section>
+
+        <!-- ── Input Form ── -->
+        <section class="card form-card">
+            <form action="/predict" method="POST" id="urlForm">
+                <label class="input-label" for="urlInput">
+                    <span class="label-icon">🔗</span> Enter URL to Analyze
+                </label>
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="urlInput"
+                        name="url"
+                        class="url-input"
+                        placeholder="e.g. https://example.com or http://suspicious-login.tk"
+                        value="{{ url if url else '' }}"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button type="submit" class="btn-scan" id="scanBtn">
+                        <span class="btn-text">Scan URL</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ── Error Message ── -->
+        {% if error %}
+        <section class="card result-card error-card">
+            <div class="result-icon">⚠️</div>
+            <div class="result-content">
+                <h2 class="result-title">Error</h2>
+                <p class="result-message">{{ error }}</p>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── Result Section ── -->
+        {% if result %}
+        <section class="card result-card {{ 'phishing-card' if result.prediction == 1 else 'legit-card' }}">
+
+            <div class="result-icon-wrap">
+                <div class="result-big-icon">
+                    {{ '🚨' if result.prediction == 1 else '✅' }}
+                </div>
+                <div class="result-pulse {{ 'pulse-red' if result.prediction == 1 else 'pulse-green' }}"></div>
+            </div>
+
+            <div class="result-content">
+                <div class="result-badge {{ 'badge-phish' if result.prediction == 1 else 'badge-legit' }}">
+                    {{ 'PHISHING DETECTED' if result.prediction == 1 else 'LEGITIMATE URL' }}
+                </div>
+
+                <h2 class="result-title {{ 'text-red' if result.prediction == 1 else 'text-green' }}">
+                    {{ 'This URL is Dangerous!' if result.prediction == 1 else 'This URL appears Safe' }}
+                </h2>
+
+                <div class="url-display">
+                    <span class="url-label">Analyzed URL:</span>
+                    <code class="url-code">{{ url }}</code>
+                </div>
+
+                <div class="confidence-wrap">
+                    <span class="conf-label">Model Confidence:</span>
+                    <div class="conf-bar-track">
+                        <div class="conf-bar-fill {{ 'fill-red' if result.prediction == 1 else 'fill-green' }}"
+                             style="width: {{ result.confidence }}%"></div>
+                    </div>
+                    <span class="conf-value">{{ result.confidence }}%</span>
+                </div>
+
+                {% if result.prediction == 1 %}
+                <p class="result-message warning-msg">
+                    ⚠️ <strong>Do not proceed.</strong> This URL shows patterns
+                    commonly associated with phishing attacks. Avoid entering
+                    personal information on this site.
+                </p>
+                {% else %}
+                <p class="result-message safe-msg">
+                    ✔️ <strong>No threats detected.</strong> This URL does not
+                    match known phishing patterns. Always stay cautious online.
+                </p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ── How It Works ── -->
+        <section class="card info-card">
+            <h3 class="info-title">⚙️ How It Works</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-num">01</span>
+                    <h4>Feature Extraction</h4>
+                    <p>12 features extracted from URL structure, domain, and content patterns</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-num">02</span>
+                    <h4>ML Classification</h4>
+                    <p>Random Forest model trained on labeled phishing and legitimate URLs</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-num">03</span>
+                    <h4>Instant Result</h4>
+                    <p>Prediction returned with confidence score and safety guidance</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Features Analyzed ── -->
+        <section class="card features-card">
+            <h3 class="info-title">🔍 Features Analyzed</h3>
+            <div class="feat-grid">
+                <span class="feat-chip">URL Length</span>
+                <span class="feat-chip">Dot Count</span>
+                <span class="feat-chip">Hyphen Count</span>
+                <span class="feat-chip">Slash Count</span>
+                <span class="feat-chip">@ Symbol</span>
+                <span class="feat-chip">HTTPS Check</span>
+                <span class="feat-chip">Digit Count</span>
+                <span class="feat-chip">Suspicious Words</span>
+                <span class="feat-chip">IP Address</span>
+                <span class="feat-chip">Domain Length</span>
+                <span class="feat-chip">Special Chars</span>
+                <span class="feat-chip">Subdomain</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+        <p>
+            🎓 <strong>Educational Project</strong> — Built with Python, Scikit-learn & Flask.
+            Not intended for production security use.
+        </p>
+    </footer>
+
+    <script>
+        // Add loading state to button on submit
+        document.getElementById('urlForm').addEventListener('submit', function() {
+            const btn = document.getElementById('scanBtn');
+            btn.innerHTML = '<span class="btn-text">Scanning...</span><span class="btn-icon">⟳</span>';
+            btn.disabled = true;
+            btn.classList.add('loading');
+        });
+    </script>
+
+</body>
+</html>
